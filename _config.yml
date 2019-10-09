@@ -1,0 +1,5 @@
+theme: jekyll-theme-cayman
+title: R for datascience
+description: Laurent Rouvière
+github:
+  is_project_page: false
