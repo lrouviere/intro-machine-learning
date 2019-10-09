@@ -10,6 +10,7 @@ title: Introduction to machine learning
 
 ### Exercises, notebook
 
+- [Example of exercices for the 2 first parts](IML0.html)
 - [Tuto 1](tuto1.Rmd): RStudio environment.
 - Tuto 2: R objects [Rmd](tuto2_robjects_std.Rmd), [html](tuto2_robjects_std.nb.html).
 - Tuto 3: manipulating data [Rmd](tuto3_dplyr_std.Rmd), [html](tuto3_dplyr_std.nb.html)
