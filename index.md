@@ -1,5 +1,5 @@
 ---
-title: R for datascience
+title: Introduction to machine learning
 ---
 
 ### Lecture notes
