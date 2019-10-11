@@ -1,0 +1,222 @@
+---
+title: "Trees and random forest"
+output: 
+  html_notebook: 
+    css: ~/Dropbox/FICHIERS_STYLE/styles.css
+    toc: yes
+    toc_float: yes
+---
+
+We need the following packages:
+
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+library(leaps)
+library(glmnet)
+library(mlbench)
+library(rpart)
+library(rpart.plot)
+library(visNetwork)
+library(ISLR)
+library(kernlab)
+library(randomForest)
+library(plotROC)
+library(pROC)
+library(ranger)
+library(caret)
+```
+
+
+# Trees
+
+## Exercise 1 (tree regression)
+
+We consider the following dataset
+
+```{r}
+n <-50
+set.seed(1234)
+X <- runif(n)
+set.seed(5678)
+Y <- 1*X*(X<=0.6)+(-1*X+3.2)*(X>0.6)+rnorm(n,sd=0.1)
+data1 <- data.frame(X,Y)
+ggplot(data1)+aes(x=X,y=Y)+geom_point()+theme_classic()
+```
+
+1. Fit a tree to explain $Y$ by $X$ (use **rpart**).
+
+
+2. Draw the tree with **prp** and **rpart.plot**.
+
+
+3. Write the tree regression function.
+
+
+4. Add on the graph of question 1 the partition defined by the tree and the prediction.
+
+
+
+## Exercise 2 (classification tree)
+
+
+We consider the following dataset
+
+```{r}
+n <- 50
+set.seed(12345)
+X1 <- runif(n)
+set.seed(5678)
+X2 <- runif(n)
+Y <- rep(0,n)
+set.seed(54321)
+Y[X1<=0.45] <- rbinom(sum(X1<=0.45),1,0.85)
+set.seed(52432)
+Y[X1>0.45] <- rbinom(sum(X1>0.45),1,0.15)
+data2 <- data.frame(X1,X2,Y)
+library(ggplot2)
+ggplot(data2)+aes(x=X1,y=X2,color=Y)+geom_point(size=2)+scale_x_continuous(name="")+scale_y_continuous(name="")+theme_classic()
+```
+
+1. Fit a tree to explain $Y$ by $X_1$ and $X_2$. Draw the tree. What happens?
+
+
+2. Write the classification rule and the score function induced by the tree.
+
+The classification rule is
+$$\widehat g(x)=\mathbf{1}_{X_1<0.44}.$$
+
+The score function is
+$$\widehat S(x)=\widehat P(Y=1|X=x)=0.83\mathbf{1}_{X_1<0.44}+0.07\mathbf{1}_{X_1\geq 0.44}.$$
+
+4. Add on the first graph the partition defined by the tree.
+
+
+## Exercise 3 (categorical input)
+
+We consider the following dataset
+
+```{r}
+n <- 100
+X <- factor(rep(c("A","B","C","D"),n))
+set.seed(1234)
+Y[X=="A"] <- rbinom(sum(X=="A"),1,0.9)
+Y[X=="B"] <- rbinom(sum(X=="B"),1,0.25)
+Y[X=="C"] <- rbinom(sum(X=="C"),1,0.8)
+Y[X=="D"] <- rbinom(sum(X=="D"),1,0.2)
+Y <- as.factor(Y)
+data3 <- data.frame(X,Y)
+```
+
+1. Fit a tree to explain $Y$ by $X$.
+
+2. Explain how the tree is fitted in this context.
+
+## Exercise 4 (pruning)
+
+We consider the dataset **Carseats** from the **ISLR** package.
+
+```{r}
+data(Carseats)
+```
+
+The problem is to explain the **Sales** variable by the other variables.
+
+1. Fit a tree with **rpart** to explain **Sales** by the other variables.
+
+
+2. Explain the output of the **printcp** command
+
+```{r}
+printcp(tree)
+```
+
+
+3. Draw the tree with 8 split (use **prune**).
+
+
+4. **Remark** : **visTree** function from **visNetwork** package allows to draw interactive graphs
+```{r}
+visTree(tree)
+```
+
+A shiny web application is also proposed to visualise the sequence of subtrees
+
+
+```{r,eval=FALSE,include=TRUE}
+visTreeEditor(Carseats)
+```
+
+
+5. Split the dataset into a training set of size 250 and a test set of size 150.
+
+```{r}
+n.train <- 250
+set.seed(12345)
+perm <- sample(nrow(Carseats))
+train <- Carseats[perm[1:n.train],]
+test <- Carseats[-perm[1:n.train],]
+```
+
+6. We fit a sequence of trees on the train sample with
+```{r}
+set.seed(12345)
+tree <- rpart(Sales~.,data=train,cp=0.00000001,minsplit=2)
+```
+
+In this sequence of tree, select
+
+  - a very simple tree (with 2 or 3 splits)
+  - a very large tree
+  - an optimal tree (with the classical pruning strategy)
+  
+
+7. Estimate the quadratic error of these 3 trees with the test sample.
+
+
+# Random Forest
+
+## Exercise 5 (random Forest)
+
+We again consider the **spam** dataset from package **kernlab**.
+
+```{r}
+data(spam)
+```
+
+1. Explain the following graph
+
+```{r}
+rf1 <- randomForest(type~.,data=spam)
+plot(rf1)
+```
+
+
+2. Fit anoter random forest with **mtry=1**. Make a comparison between the two forests.
+
+
+3. Split the data into a training set of size 3000 and a test set of size 1601.
+
+4. Fit 2 random forest on the training set: one with the default value of **mtry** and one with **mtry=1**.
+
+5. Estimate the misclassification error of the 2 RF with the test set.
+
+6. Use **caret** package to select **mtry** parameter. You can select this parameter in the grid **seq(1,30,by=5)**.
+
+7. Fit a tree on the train sample.
+
+
+
+8. Draw ROC curves and compute AUC for the 2 random forests and the tree.
+
+
+9. Represent the 10 most important variables of the best random forest with a bar chart.
+
+
+10. Fit a forest on the train dataset with the **ranger** function of the **ranger** package. What do you notice?
+
+
+
+## Exercice 6
+
+Make a comparison between **random Forest**, **ridge** and **lasso** for the **spam** dataset. To do that, you will compute the classical risks (error probability, ROC...) by 10-folds cross validation. Be carefull wih the selection of the parameters.
+
