@@ -1,0 +1,238 @@
+---
+title: "Introduction to Machine Learning - Exercises, Part 1 and 2"
+output:
+  html_notebook:
+    css: ~/Dropbox/FICHIERS_STYLE/styles.css
+    toc: yes
+    toc_float: yes
+#    runtime: shiny
+  html_document:
+    css: ~/Dropbox/FICHIERS_STYLE/styles.css
+    df_print: paged
+    toc: yes
+---
+
+\newcommand{\prob}{\mathbf P}
+\newcommand{\ind}{\mathbf 1}
+
+We need the following packages.
+
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+library(plotROC)
+library(pROC)
+library(shiny)
+library(caret)
+library(class)
+library(KernSmooth)  #package for locpoly
+```
+
+
+
+## Exercise 1 (classification rules and misclassification error estimation)
+
+We consider the following data set
+
+```{r}
+n <- 1000
+seuil <- 0.25
+set.seed(1234)
+X1 <- runif(n)
+set.seed(5678)
+X2 <- runif(n)
+set.seed(9012)
+R1 <- X1<=0.25
+R2 <- (X1>0.25 & X2>=0.75)
+R3 <- (X1>0.25 & X2<0.75)
+Y <- rep(0,n)
+Y[R1] <- rbinom(sum(R1),1,0.25)
+Y[R2] <- rbinom(sum(R2),1,0.25)
+Y[R3] <- rbinom(sum(R3),1,0.75)
+my_data <- data.frame(X1,X2,Y)
+my_data$Y <- as.factor(my_data$Y)
+```
+
+
+The problem is to explain $Y$ by $X_1$ and $X_2$. 
+
+1. What is the distribution of $X$? Same question for $Y|X=x$ with $x\in[0,1]^2$.
+
+
+2. Calculate the Bayes rule and the Bayes error.
+
+
+3. Draw the scatterplot $X_2\times X_1$ and color the points according to the label $Y$.
+
+
+4. We consider 3 classification rules:
+$$g_1(x)=1_{x_1>x_2}(x),\quad g_2(x)=1_{x_2<0.5}(x),\quad g_3(x)=1_{x_1>0.25}(x).$$
+Calculate $g_\ell(X_i)$ for each observation in **my_data** (you can use **as.numeric**). Put all predictions in the same **dataframe**.
+
+
+5. Estimate error probabilities $P(g_j(X)\neq Y)$ for each classification rule $g_j$.
+
+
+6. We consider the one-nearest neigbor rule defined by
+$$\widehat g_1(x)=\left\{
+\begin{array}{ll}
+1 & \text{if }Y(x)=1 \\
+0 & \text{otherwise,}
+\end{array}\right.$$
+
+where $Y(x)$ stands for the label of the nearest neighbor of $x$ among $\{X_1,\dots,X_n\}$. Split the data into
+
+* a train dataset of size 750
+* a test dataset of size 250.
+
+
+7. Estimate the error probability of the 1-nearest neigbor rule $\widehat g_1$. You can use the **knn** function from the **class** package.
+
+
+
+## Exercise 2 (ROC curves)
+
+We consider three scores $S_1,S_2$ and $S_3$ for 100 individuals. We have also at hand the labels of each individuals in the vector $Y$. Score and labels are in the following data frame:
+
+```{r}
+set.seed(1234)
+S1 <- runif(100)
+S2 <- runif(100)
+S3 <- S1
+S3[sample(100,25)] <- runif(25)
+Y <- rep(0,n)
+Y[S1>0.5] <- 1
+df <- data.frame(S1,S2,S3,Y=as.factor(Y))
+```
+
+1. Represent score values with a different color for each group.
+
+2. Draw the roc curve of $S_1$ with the **roc** function of the **pROC** package.
+
+3. Add roc curves of $S_2$ and $S_3$.
+
+4. Calculate AUC of the three scores.
+
+5. Draw the three roc curves with the **geom_roc** function of the **plotROC** package (use **gather** to simplify the code).
+
+6. Compute AUC of the 3 scores with **summarize** verb.
+
+
+
+## Exercise 3 (ROC curve for logistic model)
+
+We consider the same dataset as in exercise 1. The goal is to compute the ROC curve for two logistic models.
+
+1. We first consider the logistic model
+$$\log\frac{p(x)}{1-p(x)}=\beta_0+\beta_1x_1+\beta_2x_2,$$
+where $p(x)=P(Y=1|X=x)$. We learn this model on the **training** set with
+
+```{r}
+logit1 <- glm(Y~.,data=train,family=binomial)
+```
+
+We consider the score function $S_1(x)=\beta_0+\beta_1x_1+\beta_2x_2$. Compute the score of each indivuals in the test dataset (use **predict**).
+
+
+2. We consider a second logistic model 
+$$\log\frac{p(x)}{1-p(x)}=\beta_0+\beta_1x_1+\beta_2x_2+\beta_3x_1^2+\beta_4x_2^2$$
+with score function $S_2(x)=\beta_0+\beta_1x_1+\beta_2x_2+\beta_3x_1^2+\beta_4x_2^2$.
+Fit this logistic model on the train dataset and compute the score for individuals in the test dataset.
+
+
+3. Build a 3 column data frame which contains values of the two scores and observed labels for individuals in the test dataset.
+
+4. Draw roc curves and compute AUC of the two scores.
+
+## Exercise 4 (kernel regression estimate)
+
+We consider the model
+
+$$Y_i=\sin(X_i)+\varepsilon_i,\quad i=1,\dots,n$$
+where $X_i\sim\mathcal U_{[-2\pi,2\pi]}$ and $\varepsilon_i\sim\mathcal N(0,0.2^4)$
+
+
+1. Generate $n=500$ observations $(X_1,Y_1),\dots,(X_n,Y_n)$ according to the model above.
+
+2. Represent on a graph both the sample and the sine function.
+
+3. Fit a kernel estimate on a train dataset of size 300 with bandwidth $h=0.5$ (use **locpoly** function from **KernSmooth** package). Add the kernel estimate on the previous graphe.
+
+4. Add the kernel estimates with bandwidths $h_2=3$ and $h_3=0.01$ (always fitted on the train sample).
+
+5. Use the test sample to estimate the mean square error of the three kernel estimates. You can use the **ksmooth** function.
+
+## Exercise 5 (ERM with caret)
+
+
+We again consider the dataset of exercise 1.
+```{r}
+dim(my_data)
+set.seed(123)
+perm <- sample(nrow(my_data))
+train <- my_data %>% slice(perm[1:750])
+test <- my_data %>% slice(perm[751:1000])
+
+dim(train)
+dim(test)
+```
+The goal is to find the best integer $k$ for the $k$-nearest neighbor rule.
+
+1. Fit the 3 nearest-neighbor rule $\widehat g_3$ on the train sample and estimate its error probability 
+$$L(\widehat g_3)=\prob(\widehat g_3(X)\neq Y)$$
+by validation hold hout (with the test sample). Use **knn** function from **class** package.
+
+2. Estimate the error probability for each value of $k$ in $\{1,\dots,450\}$. You can use a loop **for**:
+
+3. Represent the error on a graph: $k$ on the $x$-axis, estimated error on the $y$-axis.
+
+4. Run the shiny web application in the file **overfitting_app.R**. Explain the results.
+
+5. We propose to use **caret** package to select the best $k$. We can look at  <http://topepo.github.io/caret/index.html> for a presentation of the package. Explain outputs of the commands:
+
+
+```{r}
+#ctrl1 <- trainControl(method="LGOCV",number=1,index=list(1:1500))
+ctrl1 <- trainControl(method="LGOCV",number=1)
+grid.k <- data.frame(k=seq(1,100,by=1))
+sel.k <- train(Y~.,data=my_data,method="knn",trControl=ctrl1,tuneGrid=grid.k)
+sel.k
+plot(sel.k)
+```
+
+6. Do the same with 500 observations in the train dataset and 500 observations in the test dataset.
+
+7. Select $k$ by 10 folds cross-validation.
+
+
+**Remark**: We can use the **doMC** package to parallelize cross-validation: 
+
+```{r message=FALSE, warning=FALSE}
+library(doMC)
+detectCores()
+```
+
+
+```{r}
+ctrl5 <- trainControl(method="cv",number=50)
+registerDoMC(cores = 1)
+system.time(sel5.k <- train(Y~.,data=my_data,method="knn",trControl=ctrl5,tuneGrid=grid.k))
+
+registerDoMC(cores = 5)
+system.time(sel5.k <- train(Y~.,data=my_data,method="knn",trControl=ctrl5,tuneGrid=grid.k))
+```
+
+
+8. Explain outputs of these commands.
+
+```{r}
+data1 <- my_data
+names(data1)[3] <- c("Class")
+levels(data1$Class) <- c("G0","G1")
+ctrl11 <- trainControl(method="LGOCV",number=1,index=list(1:750),classProbs=TRUE,summary=twoClassSummary,p=0.66)
+aa <- train(Class~.,data=data1,method="knn",trControl=ctrl11,metric="ROC",tuneGrid=grid.k)
+aa
+getTrainPerf(aa)
+```
+
+We consider AUC instead of the error probability (change of criterion).
+
