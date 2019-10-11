@@ -4,8 +4,8 @@ title: Introduction to machine learning
 
 ### Lecture notes
 
-- [slides](pres_R.pdf)
-- [printable version](pres_R_article.pdf)
+- [slides](cours.pdf)
+- [printable version](cours_article.pdf)
 
 
 ### Exercises, notebook
