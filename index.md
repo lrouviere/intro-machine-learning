@@ -12,6 +12,9 @@ title: Introduction to machine learning
 
 - [Example of exercices for the 2 first parts](IML0.html)
 - Tuto 1: Risk, [Rmd](IML1_std.Rmd), [html](IML1_std.nb.Rmd). Files for shiny application: [overfitting_app.R](SHINY/overfitting_app.R), [generation.R](generation.R), [trace_front.R](trace_front.R)
+- Tuto 2: Penalized regressions, [Rmd](IML2_std.Rmd), [html](IML2_std.nb.Rmd).
+
+
 
 - Tuto 2: R objects [Rmd](tuto2_robjects_std.Rmd), [html](tuto2_robjects_std.nb.html).
 - Tuto 3: manipulating data [Rmd](tuto3_dplyr_std.Rmd), [html](tuto3_dplyr_std.nb.html)
