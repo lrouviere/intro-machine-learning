@@ -19,6 +19,7 @@ title: Introduction to machine learning
 ### Corrections
 
 - [Tuto 1](IML1.html)
+
 <!---
 - [Tuto 2](tuto2_robjects_cor.html)
 - [Tuto 3](tuto3_dplyr_cor.html)
